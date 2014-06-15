@@ -1,0 +1,150 @@
+﻿@model string
+
+<div class="header">
+    <div class="container">
+        <div class="pull-right">
+            <a href="@Url.Action("Install", "Injector", new { id = Model })" class="btn btn-lg btn-info">Install</a>
+        </div>
+        <a href="@Url.Action("Index", "Home")"><img src="~/Content/injector/injector.svg" alt="injector" class="brand" /></a>
+    </div>
+</div>
+
+<div class="container">
+
+
+    <header class="page-header">
+        <h1>Injections</h1>
+    </header>
+
+    <table class="table panel panel-default">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Url</th>
+                <th class="functions"></th>
+            </tr>
+        </thead>
+        <tbody data-bind="foreach: injections">
+            <tr>
+                <td data-bind="text: name"></td>
+                <td data-bind="text: url"></td>
+                <td>
+                    <button class="btn btn-info" data-bind="click: $root.edit" data-toggle="modal" data-target="#injectionFormModal"><i class="glyphicon glyphicon-pencil"></i></button>
+                    <button class="btn btn-info" data-bind="click: $root.delete"><i class="glyphicon glyphicon-trash"></i></button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button class="btn btn-primary" data-bind="click: $root.add" data-toggle="modal" data-target="#injectionFormModal"><i class="glyphicon glyphicon-plus"></i> New Injection</button>
+
+    <div class="modal fade" id="injectionFormModal" tabindex="-1" role="dialog" aria-labelledby="injectionFormModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title" id="injectionFormModalLabel">Injection</h4>
+                </div>
+                <div class="modal-body">
+                    <form data-bind="with: injection">
+                        <input type="hidden" data-bind="value: id" />
+                        <input type="hidden" data-bind="value: injectorId" />
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" class="form-control" data-bind="value: name" />
+                        </div>
+                        <div class="form-group">
+                            <label>Url</label>
+                            <input type="text" class="form-control" data-bind="value: url" />
+                        </div>
+                        <div class="form-group">
+                            <label>QuerySelector</label>
+                            <input type="text" class="form-control" data-bind="value: querySelector" />
+                        </div>
+                        <div class="form-group">
+                            <label>Html</label>
+                            <textarea class="form-control" data-bind="value: html"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bind="click: save">Save changes</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        var baseUrl = '@Url.Content("~/api/injection/")';
+        var injectorId = '@Model';
+
+        var Injection = function(data) {
+            var $this = this;
+
+            this.id = ko.observable();
+            this.injectorId = ko.observable();
+            this.name = ko.observable();
+            this.url = ko.observable();
+            this.querySelector = ko.observable();
+            this.html = ko.observable();
+
+            ko.mapping.fromJS(data, {}, this);
+        };
+
+        var ViewModel = function() {
+            var $this = this;
+
+            this.injections = ko.observableArray();
+            this.injection = ko.observable();
+
+            this.edit = function(injection) {
+                $this.injection(injection);
+            };
+
+            this.add = function() {
+                $this.injection(new Injection({ id: null, injectorId: injectorId, name: null, url: null, querySelector: null, html: null }));
+            };
+
+            this.save = function() {
+                var data = ko.mapping.toJS($this.injection);
+                var type = data.id == undefined ? 'post' : 'put';
+                var url = baseUrl;
+
+                $.ajax({ data: data, type: type, url: url }).done(function(data) {
+                    $this.load();
+
+                    $('#injectionFormModal').modal('hide');
+                });
+            };
+
+            this.delete = function(injection) {
+                var url = baseUrl + injection.id();
+
+                $.ajax({ type: 'delete', url: url }).done(function(data) {
+                    $this.load();
+                });
+            };
+
+            this.load = function() {
+                var data = {
+                    injectorId: injectorId
+                };
+                var type = 'get';
+                var url = baseUrl;
+
+                $.ajax({ data: data, type: type, url: url }).done(function(data) {
+                    ko.mapping.fromJS(data, {}, $this.injections);
+                });
+            };
+
+            this.load();
+        };
+
+        ko.applyBindings(new ViewModel());
+
+    </script>
+}

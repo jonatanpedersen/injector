@@ -1,0 +1,66 @@
+﻿<div class="site-wrapper">
+    <div class="site-wrapper-inner">
+        <div class="cover-container">
+            <div class="inner cover">
+                <h1>
+                    <img src="~/Content/injector/injector.svg" alt="injector" />
+                </h1>
+                <form>
+                    <div class="row">
+                        <div class="col-sm-8 col-sm-offset-2">
+                            
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input class="form-control input-lg" data-bind="value: injectorId, valueUpdate: 'keyup'" type="text" placeholder="Injector Id" />
+                                    <span class="input-group-btn">
+                                        <a class="btn btn-lg btn-default" data-bind="click: refresh"><i class="glyphicon glyphicon-repeat"></i></a>
+                                        <a class="btn btn-lg btn-primary" data-bind="attr: { href: injectorUrl }">Get Started!</a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <footer>
+                    &copy; @DateTime.Now.Year <a href="http://www.jonatanpedersen.com" target="_blank">Jonatan Pedersen</a>
+                </footer>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        var baseUrl = '@Url.Content("~/api/")';
+
+        var ViewModel = function () {
+            var $this = this;
+
+            this.injectorId = ko.observable();
+
+            this.injectorUrl = ko.computed(function () {
+                return document.location.href + 'injector/manage/' + $this.injectorId();
+
+            });
+
+            this.refresh = function () {
+                var type = 'get';
+                var url = baseUrl + 'injectorId';
+
+                $.ajax({ type: type, url: url }).done(function (data) {
+                    $this.injectorId(data);
+                });
+            };
+
+            this.init = function () {
+                $this.refresh();
+            };
+
+            this.init();
+        };
+
+        ko.applyBindings(new ViewModel());
+    </script>
+}
