@@ -1,4 +1,4 @@
-Injecor
+Injector
 =======
 
 Injector let's you inject content into any website and share the result with anybode you want. Requires GreaseMonkey and Firefox. Injector is available here https://injector.bocami.com
